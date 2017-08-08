@@ -1,0 +1,92 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{breqn}
+
+
+\title{RIWA changes}
+\author{Chris Cremer}
+\date{June 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Changes}
+
+
+
+
+\subsection{Defining the implicit distribution \texorpdfstring{$q_{IW}$}{}}
+
+
+*Add tilde because its unormalized\\
+*IWAE uses eqn 3. Eqn 4 is more\\ accurate version. so its an upper bound
+* Add tilde to marginal as well\\
+* Remove the comment about batches\\
+*Equation (4)  What are we\\ marginalizing out? Remove it? \\
+
+
+
+
+In this section, we derive the implicit distribution that arises from importance sampling from a distribution $p$ using $q$ as a proposal distribution.
+
+Given a batch of samples $z_{1}...z_{k}$ from $q(z|x)$, the following is the unnormalized importance weighted $q_{IW}$ distribution as a function of one of the samples, $z_i$:
+\begin{align} 
+    \tilde{q}_{IW}(z_i|x,z_{\setminus i}) = k \tilde{w}_i q(z_i|x)
+    &= \left( \frac{ \frac{p(x,z_i)}{q(z_i|x)}}{  \frac{1}{k}   \sum_{j=1}^k \frac{p(x,z_j)}{q(z_j|x)}}  \right) q(z_i|x) \\
+    &= \frac{p(x,z_i)}{\frac{1}{k} \left(  \frac{p(x,z_i)}{q(z_i|x)}+ \sum_{j=2}^k \frac{p(x,z_j)}{q(z_j|x)} \right)} 
+\end{align}
+For the equation above, we are arbitrarily setting $i$ to be the first index and $j$ is used to index all the other $k-1$ samples. Here are some properties to note of $\tilde{q}_{IW}$:  when $k=1$, $q_{IW}(z|x)$ will be equal to $q(z|x)$, when $k > 1$, we see that the form of $q_{IW}$ depends on the true posterior $p$, and when $k=\infty$, $q_{IW}(z|x)$ becomes the true posterior $p(z|x)$. See the appendix for details.
+
+The marginal distribution $q_{IW}(z|x)$ is given by:
+\begin{align} 
+    q_{IW}(z|x) &= E_{z_{2}...z_{k} \sim q(\cdot |x)} \left[ \frac{p(x,z)}{  \frac{1}{k} \left( \frac{p(x,z)}{q(z|x)}+ \sum_{j=2}^k \frac{p(x,z_j)}{q(z_j|x)} \right) } \right] \label{marg} 
+\end{align}
+
+Figure \ref{viz1} visualizes $q_{IW}$ on a 2D distribution approximation problem. The base distribution $q$ is a Gaussian.  As we increase the number of samples $k$ used for the sampling-resampling, the approximation approaches the true distribution. This distribution is nonparametric in the sense that, as the true posterior grows more complex, so does the shape of $q_{IW}$.
+
+
+
+
+
+
+\subsection{Recovering the IWAE bound from the VAE bound}
+
+If we now set $q(z|x) = q_{IW}(z|x)$, then we recover the IWAE ELBO:
+\begin{align}
+        \mathcal{L}_{VAE}[q_{IW}]
+        &= E_{z_{1}...z_{k} \sim q_{IW}(z|x)} \left[  \frac{1}{k}\sum_{i=1}^k log\left(\frac{p(x,z_i)}{q_{IW}(z_i|x,z_{\setminus i})}  \right)  \right] \\
+    &= E_{z_{1}...z_{k} \sim q(z|x)} \left[ \sum_{l=1}^k \tilde w_l \frac{1}{k}\sum_{i=1}^k log\left(\frac{p(x,z_i)}{\frac{p(x,z_i)}{\frac{1}{k}   \sum_{j=1}^k \frac{p(x,z_j)}{q(z_j|x)}}}  \right)  \right] \\
+    %&= E_{z_{1}...z_{k} \sim (z|x)} \left[ \frac{1}{k}\sum_{i=1}^k log\left(\frac{1}{k} \sum_{j=1}^k \frac{p(x,z_j)}{q(z_j|x)}\right)  \right] \label{with_avg} \\   
+    &= E_{z_{1}...z_{k} \sim q(z|x)} \left[  log\left(\frac{1}{k}\sum_{j=1}^k \frac{p(x,z_j)}{q(z_j|x)}  \right)  \right] = \mathcal{L}_{IWAE}[q]
+\end{align}
+
+
+
+
+
+
+
+
+
+\subsection{Discussion}
+Add this to discussion:\\
+
+\begin{align} 
+    log(p(x)) \geq L_{IWAE}[q_{IW}] = L_{VAE}[q_{IW}] \geq L_{IWAE}[q] = L_{VAE}[q_{IW|z\setminus i}] \geq L_{VAE}[q] \nonumber
+\end{align}
+
+
+
+\subsection{Acknowledgements}
+We'd also like to thank Yuri Burda, Christian Naesseth, and Scott Linderman for bringing our attention to oversights in the paper.
+
+
+\end{document}
